@@ -1,0 +1,85 @@
+---
+title: "Practical Machine Learning Course Project"
+author: "Oleg Rybkin"
+date: "October 25, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement – a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. In this project, your goal will be to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset).
+
+##Data
+
+The training data for this project are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here:
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har. If you use the document you create for this class for any purpose please cite them as they have been very generous in allowing their data to be used for this kind of assignment. 
+
+
+## Data Processing
+
+Adding libraries
+```{r}
+library(caret)
+library(randomForest) 
+library(rpart)
+```
+
+Loading training and testing datasets
+```{r}
+training <-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv", na.strings=c("NA","#DIV/0!", ""))
+test <-read.csv("https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv", na.strings=c("NA","#DIV/0!", ""))
+```
+
+Remove columns with all missing values
+```{r}
+training<-training[,colSums(is.na(training)) == 0]
+test <-test[,colSums(is.na(test)) == 0]
+```
+
+Remove columns with irrelevant values
+```{r}
+training   <-training[,-c(1:7)]
+test <-test[,-c(1:7)]
+```
+
+Check the new datasets
+```{r}
+str(training)
+str(test)
+```
+
+Partion datasest in 2 parts, 75% and 25%
+```{r}
+subsamples <- createDataPartition(y=training$classe, p=0.75, list=FALSE)
+subTraining <- training[subsamples, ] 
+subTesting <- training[-subsamples, ]
+```
+
+Use Decision Tree Model for prediction
+```{r}
+model1 <- rpart(classe ~ ., data=subTraining, method="class")
+
+prediction1 <- predict(model1, subTesting, type = "class")
+table(prediction1, subTesting$classe)
+confusionMatrix(prediction1, subTesting$classe)
+```
+
+Use Random Forest Model for prediction
+```{r}
+model2 <- randomForest(classe ~. , data=subTraining, method="class")
+prediction2 <- predict(model2, subTesting, type = "class")
+table(prediction2, subTesting$classe)
+confusionMatrix(prediction2, subTesting$classe)
+```
+
+## Conclusion
+Random Forest algorithm performed better than Decision Trees.
