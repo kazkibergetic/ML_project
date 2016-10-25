@@ -2,7 +2,7 @@
 title: "Practical Machine Learning Course Project"
 author: "Oleg Rybkin"
 date: "October 25, 2016"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
